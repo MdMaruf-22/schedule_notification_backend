@@ -35,14 +35,6 @@ We would like to extend our thanks to the following sponsors for funding Laravel
 
 ### Premium Partners
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
 
 ## Contributing
 
@@ -59,3 +51,36 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Running the remindr backend (local)
+
+This project includes server-side delivery of Firebase Cloud Messaging (FCM) notifications for reminders. To run the backend locally and ensure notifications are delivered, follow these steps:
+
+1. Copy `.env.example` to `.env` and set DB and other credentials.
+2. Install dependencies: `composer install`.
+3. Generate the app key: `php artisan key:generate`.
+4. Start the development server (example):
+	- `php artisan serve --host=0.0.0.0 --port=8000`
+
+5. Run a queue worker (processes notification jobs):
+	- `php artisan queue:work`
+
+6. Ensure the scheduler runs every minute. For quick local testing on Windows PowerShell you can run:
+	- `while ($true) { php artisan schedule:run; Start-Sleep -Seconds 60 }`
+
+	Or set up your system scheduler / cron to run `php artisan schedule:run` each minute.
+
+### Firebase / FCM configuration
+
+The backend supports two sending methods:
+
+- Kreait (Firebase Admin SDK) — preferred for production. Configure the SDK using a service account or the package's configuration.
+- Legacy FCM server key — if you don't configure the Admin SDK, set `FCM_SERVER_KEY` in your `.env`.
+
+Frontend (Flutter) requirements:
+
+- Add platform Firebase configuration files to the frontend project:
+  - Android: place `google-services.json` into `remindr_frontend/android/app/`
+  - iOS: place `GoogleService-Info.plist` into `remindr_frontend/ios/Runner/`
+
+After adding the platform files, run `flutter pub get` in the frontend and launch the app.

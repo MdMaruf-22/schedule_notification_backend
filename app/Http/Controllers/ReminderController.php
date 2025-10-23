@@ -31,13 +31,23 @@ class ReminderController extends Controller
     public function store(Request $request)
     {
         //
+        $data = $request->all();
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'remind_at' => 'required|date',
+            'remind_at' => 'nullable|date',
+            'time' => 'nullable|date',
             'fcm_token' => 'nullable|string',
         ]);
 
+        // support frontend 'time' field
+        if (isset($validated['time']) && empty($validated['remind_at'])) {
+            $validated['remind_at'] = $validated['time'];
+            unset($validated['time']);
+        }
+
         $reminder = Reminder::create($validated);
+
         return response()->json($reminder, 201);
     }
 
@@ -100,5 +110,27 @@ class ReminderController extends Controller
         ]);
 
         return response()->json($response->json(), $response->status());
+    }
+
+    // register or update device token globally (optional)
+    public function registerToken(Request $request)
+    {
+        $validated = $request->validate([
+            'reminder_id' => 'nullable|integer',
+            'fcm_token' => 'required|string',
+        ]);
+
+        if (!empty($validated['reminder_id'])) {
+            $reminder = Reminder::find($validated['reminder_id']);
+            if (!$reminder) {
+                return response()->json(['message' => 'Reminder not found'], 404);
+            }
+            $reminder->fcm_token = $validated['fcm_token'];
+            $reminder->save();
+            return response()->json($reminder);
+        }
+
+        // otherwise just return success — in a real app you'd associate the token with a user
+        return response()->json(['message' => 'Token received'], 200);
     }
 }
